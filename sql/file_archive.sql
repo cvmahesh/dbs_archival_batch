@@ -24,18 +24,19 @@ USE `batch_db`;
 DROP TABLE IF EXISTS `file_archive`;
 CREATE TABLE IF NOT EXISTS `file_archive` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `file_name` varchar(100) DEFAULT NULL,
-  `source_path` varchar(100) DEFAULT NULL,
-  `archive_path` varchar(100) DEFAULT NULL,
-  `archived_at` date DEFAULT NULL,
+  `batch_name` varchar(50) DEFAULT NULL,
+  `file_name` varchar(100) NOT NULL,
+  `source_path` varchar(100) NOT NULL,
+  `archive_path` varchar(100) NOT NULL,
+  `archived_at` date NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table batch_db.file_archive: ~0 rows (approximately)
-INSERT INTO `file_archive` (`id`, `file_name`, `source_path`, `archive_path`, `archived_at`) VALUES
-	(1, 'file1.eml', 'C:\\workspace\\testing\\data\\folder1', 'C:\\workspace\\testing\\archive\\folder1', '2024-12-25'),
-	(2, 'file1.eml', 'C:\\workspace\\testing\\archive\\folder1', 'C:\\workspace\\testing\\delete\\folder1', '2024-12-25'),
-	(3, 'file2.eml', 'C:\\workspace\\testing\\data\\folder2', 'C:\\workspace\\testing\\archive\\folder2', '2024-12-25');
+-- Dumping data for table batch_db.file_archive: ~3 rows (approximately)
+INSERT INTO `file_archive` (`id`, `batch_name`, `file_name`, `source_path`, `archive_path`, `archived_at`) VALUES
+	(1, NULL, 'file1.eml', 'C:\\workspace\\testing\\data\\folder1', 'C:\\workspace\\testing\\archive\\folder1', '2024-12-25'),
+	(2, NULL, 'file1.eml', 'C:\\workspace\\testing\\archive\\folder1', 'C:\\workspace\\testing\\delete\\folder1', '2024-12-25'),
+	(3, NULL, 'file2.eml', 'C:\\workspace\\testing\\data\\folder2', 'C:\\workspace\\testing\\archive\\folder2', '2024-12-25');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
