@@ -127,113 +127,68 @@ def process_folders_using_db(config, records):
     print("Processing folder ends "   ) 
  
 
-# Function to establish a connection to the MySQL database
-def connect_to_mysql(config):
 
-    try:
-        database_config = config['mysql']
-        print(f"database_config: {database_config}")
-        # Create a connection to the database
-        connection = mysql.connector.connect(
-            host=database_config['host'],
-            user=database_config['user'],
-            port=database_config['port'],
-            password=database_config['password'],
-            database=database_config['database']
-        )
-        print("Successfully connected to the MySQL database!")
-        return connection
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-        return None
+# def connect_to_mariadb(config):
 
-def connect_to_mariadb(config):
-
-    try:
-        connection = None  # Initialize connection to None
-        database_config = config['mariadb']
-        # Establish the connection
-        print(f"mariadb database_config : {database_config}")
-        connection =  mod_mariadb.connect_to_mariadb() 
-            # host='localhost',       # Change to your host, e.g., '127.0.0.1' or a remote IP
-            # user='root',       # Replace with your MariaDB username
-            # password='Mar-1976',    # Replace with your MariaDB password
-            # port='3307',
-            # charset='utf8mb4',  # Use utf8mb4 for full Unicode support
-            # database='batch_db'      # Replace with your MariaDB database name
-
-        #     host=database_config['host'],
-        #     user=database_config['user'],
-        #     port=database_config['port'],
-        #     #password=database_config['password'].encode("utf-8") ,
-        #     password=database_config['password'],
-        #     #charset='utf8mb4',  # Use utf8mb4 for full Unicode support
-        #     #charset="utf8mb3",
-        #     database=database_config['database']
-            
-        # )
-
-        #if connection.is_connected():
-        print("Connected to MariaDB successfully!")
+#     try:
+#         connection = None  # Initialize connection to None
+#         database_config = config['mariadb']
+#         # Establish the connection
+#         print(f"mariadb database_config : {database_config}")
+#         connection =  mod_mariadb.connect_to_mariadb() 
+      
+#         #if connection.is_connected():
+#         print("Connected to MariaDB successfully!")
         
-        # Fetch and display server information
-        #db_info = connection.get_server_info()
-        #print(f"MariaDB Server Version: {db_info}")
+#         # Fetch and display server information
+#         #db_info = connection.get_server_info()
+#         #print(f"MariaDB Server Version: {db_info}")
 
-        # Example query
-        cursor = connection.cursor()
-        cursor.execute("SELECT DATABASE();")
-        current_db = cursor.fetchall()
-        print(f"Currently connected to database: {current_db}")
+#         # Example query
+#         cursor = connection.cursor()
+#         cursor.execute("SELECT DATABASE();")
+#         current_db = cursor.fetchall()
+#         print(f"Currently connected to database: {current_db}")
 
-    except Error  as e:
-        print(f"Error while connecting to MariaDB: {e}")
+#     except Error  as e:
+#         print(f"Error while connecting to MariaDB: {e}")
 
-    finally:
-        # Ensure the connection is closed
-        #if connection.is_connected():
-        #connection.close()
-        if connection:
-            connection.close()
-            print("MariaDB connection closed.")
-
-
+#     finally:
+#         # Ensure the connection is closed
+#         #if connection.is_connected():
+#         #connection.close()
+#         if connection:
+#             connection.close()
+#             print("MariaDB connection closed.")
 
 
-def create_table_if_not_exists(connection):
-    cursor = connection.cursor()
 
-    # SQL query to create a table if it doesn't exist
-    create_table_query = '''
-    CREATE TABLE IF NOT EXISTS file_archive (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        file_name VARCHAR(100),
-        source_path VARCHAR(100),
-        archive_path VARCHAR(100),
-        archived_at DATE DEFAULT NULL
-    );
-    '''
-    try:
-        cursor.execute(create_table_query)
-        connection.commit()
-        print("Table 'file_archive' is ready (created if not exists).")
-    except mysql.connector.Error as err:
-        print(f"Error while creating table: {err}")
-    finally:
-        cursor.close()
+
+# def create_table_if_not_exists(connection):
+#     cursor = connection.cursor()
+
+#     # SQL query to create a table if it doesn't exist
+#     create_table_query = '''
+#     CREATE TABLE IF NOT EXISTS file_archive (
+#         id INT AUTO_INCREMENT PRIMARY KEY,
+#         file_name VARCHAR(100),
+#         source_path VARCHAR(100),
+#         archive_path VARCHAR(100),
+#         archived_at DATE DEFAULT NULL
+#     );
+#     '''
+#     try:
+#         cursor.execute(create_table_query)
+#         connection.commit()
+#         print("Table 'file_archive' is ready (created if not exists).")
+#     except mysql.connector.Error as err:
+#         print(f"Error while creating table: {err}")
+#     finally:
+#         cursor.close()
 
 
 def rollback_files(config, connection, filter_date):
-    """
-    Fetches records from the file_archive table based on the given date filter.
-
-    Args:
-        connection: MySQL database connection object.
-        filter_date: The date to filter records (YYYY-MM-DD).
-
-    Returns:
-        List of records matching the date filter.
-    """
+   
     try:
         # Create a cursor
         cursor = connection.cursor(dictionary=True)  # Use dictionary=True for results as dicts
@@ -307,13 +262,43 @@ def list_files(config):
     return 
  
 
-def archive_files():
+# def archive_files():
+#     # Load configuration from YAML
+#     config = load_config()
+
+#     # Connect to the MySQL database
+#     # connection = connect_to_mysql(config)
+#     connection1 = connect_to_mariadb(config)
+#     # If connection was successful, fetch and print some information
+#     if connection:
+
+#         cursor = connection.cursor()
+#         cursor.execute("SELECT DATABASE();")
+#         db_info = cursor.fetchone()
+#         print(f"You're connected to the database: {db_info[0]}")
+    
+#         #create table if not exists
+#         create_table_if_not_exists(connection)
+
+#         # Process the folders based on the configuration
+#         process_folders(config, connection)
+
+#          # Process the folders based on the configuration
+#         date_filter = datetime.strptime("2024-12-20", "%Y-%m-%d").date()  # Ensure correct format
+#         #rollback_files(config, connection,date_filter)
+    
+#         # Close the connection
+#         cursor.close()
+#         connection.close()
+#         print("MySQL connection is closed.")
+
+def rollback_archived_files(connection):
     # Load configuration from YAML
     config = load_config()
 
-    # Connect to the MySQL database
-    connection = connect_to_mysql(config)
-    connection1 = connect_to_mariadb(config)
+    # # Connect to the MySQL database
+    # connection = connect_to_mysql(config)
+
     # If connection was successful, fetch and print some information
     if connection:
 
@@ -323,37 +308,7 @@ def archive_files():
         print(f"You're connected to the database: {db_info[0]}")
     
         #create table if not exists
-        create_table_if_not_exists(connection)
-
-        # Process the folders based on the configuration
-        process_folders(config, connection)
-
-         # Process the folders based on the configuration
-        date_filter = datetime.strptime("2024-12-20", "%Y-%m-%d").date()  # Ensure correct format
-        #rollback_files(config, connection,date_filter)
-    
-        # Close the connection
-        cursor.close()
-        connection.close()
-        print("MySQL connection is closed.")
-
-def rollback_archived_files():
-    # Load configuration from YAML
-    config = load_config()
-
-    # Connect to the MySQL database
-    connection = connect_to_mysql(config)
-
-    # If connection was successful, fetch and print some information
-    if connection:
-
-        cursor = connection.cursor()
-        cursor.execute("SELECT DATABASE();")
-        db_info = cursor.fetchone()
-        print(f"You're connected to the database: {db_info[0]}")
-    
-        #create table if not exists
-        create_table_if_not_exists(connection)
+        #create_table_if_not_exists(connection)
 
         # Process the folders based on the configuration
         #process_folders(config, connection)
@@ -416,8 +371,13 @@ if __name__ == "__main__":
         logging.debug(f"Option selected: write-details to {args.write_details}")
         #write_archival_details_to_file(args.write_details)
     elif args.rollback:
+         # Load configuration from YAML
+        config = load_config()
+
+        connection = mod_mariadb.connect_to_mariadb(config)
+
         logging.debug("Option selected: rollback")
-        rollback_archived_files()
+        rollback_archived_files(connection)
     else:
         logging.debug("No valid option selected. Displaying help.")
         parser.print_help()

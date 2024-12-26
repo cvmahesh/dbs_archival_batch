@@ -9,29 +9,6 @@ def load_config():
         return yaml.safe_load(file)
     
 
-
-
-# Function to establish a connection to the MySQL database
-def connect_to_mysql(config):
-
-    try:
-        database_config = config['mysql']
-        print(f"database_config: {database_config}")
-        # Create a connection to the database
-        connection = mysql.connector.connect(
-            host=database_config['host'],
-            user=database_config['user'],
-            port=database_config['port'],
-            password=database_config['password'],
-            database=database_config['database']
-        )
-        print("Successfully connected to the MySQL database!")
-        return connection
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-        return None
-    
-    
 def connect_to_mariadb(config):
 
     connection = None  # Initialize connection to None

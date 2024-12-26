@@ -13,6 +13,11 @@ mariadb:
   database: batch_db
   port: 3307
 
+emaillist:
+  Process1:
+    email_to: rush2cvmahesh@gmail.com
+    email_cc: rush2magilife@gmail.com 
+    email_bcc: cvmahesh@rediffmail.com
 
 folders:
   folder1:
