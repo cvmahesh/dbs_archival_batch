@@ -57,3 +57,21 @@ if __name__ == "__main__":
 
     path_separator = get_path_separator()
     print(f"Path separator for the current OS: '{path_separator}'")
+
+
+    import uuid
+
+    # Create a UUID using SHA-1 hashing
+    namespace = uuid.NAMESPACE_DNS
+    name = "example.com"
+    name_based_uuid_sha1 = uuid.uuid5(namespace, name)
+
+    print(f"Name-based UUID (SHA-1): {name_based_uuid_sha1}")
+
+
+ 
+
+    # Generate a random UUID
+    random_uuid = uuid.uuid4()
+
+    print(f"Random UUID: {random_uuid}")

@@ -16,6 +16,8 @@ import mod_mariadb
 import utils.zip_and_compress
 import utils.file_utils
 import utils.utilities
+import uuid
+
 
 # Load YAML configuration file
 def load_config():
@@ -32,7 +34,7 @@ def setup_logging():
         print(f"Failed to configure logging: {e}")
 
 # Function to move files based on age
-def move_files(config, src_folder, dest_folder, age_days, connection):
+def move_files(random_uuid, config, src_folder, dest_folder, age_days, connection):
     current_time = time.time()
     
     src_folder = config['source_base_dir'] + src_folder 
@@ -47,7 +49,7 @@ def move_files(config, src_folder, dest_folder, age_days, connection):
 
     print(f"Move from {src_folder} to {dest_folder}")
     
-    cursor = connection.cursor()
+    # cursor = connection.cursor()
 
 
 
@@ -67,63 +69,58 @@ def move_files(config, src_folder, dest_folder, age_days, connection):
         if file_age_days >= age_days:
             dest_path = os.path.join(dest_folder, filename)
             try:
-                shutil.move(file_path, dest_path)
+                print(f"Moving file from {file_path} to {dest_path}  " )
+                #shutil.move(file_path, dest_path)
+                utils.zip_and_compress.move_file_to_compressed_archive(file_path, dest_folder, filename)
+
+                # Full path for the archive in the destination directory
+                archive_path = os.path.join(dest_folder, f"{filename}.zip")
+
+                #shutil.make_archive(os.path.join(dest_dir, archive_name), 'zip', source_dir)
                 #print(f"Moved {filename} from {src_folder} to {dest_folder}")
                 print(f"Archived file: {filename} from {src_folder} to {dest_folder}" +utils.utilities.get_path_separator() +filename+"" )
                 
-                sql = """INSERT INTO file_archive (file_name, source_path, archive_path, archived_at) VALUES (%s, %s, %s, %s)"""
-                values = (filename, src_folder, dest_folder, date.today() )
+                #sql = """INSERT INTO archival_history (uuid, file_name, source_path, archive_path, archived_at) VALUES (%s, %s, %s, %s)"""
+                random_uuid_str = str(random_uuid)
+                values = (random_uuid_str, filename, src_folder, archive_path, date.today() )
 
-                print("SQL Query:", sql)
-                print("Values:", values)
+                mod_mariadb.insert_archival_history(connection,values)
+
 
                     # Log to database
                 # cursor.execute('''INSERT INTO file_archive (file_name, source_path, archive_path, archived_at)
                 # VALUES (?, ?, ?, ?)''',
                 # (filename, src_folder, dest_folder, datetime.now()))
                
-                cursor.execute(sql, values)
+                # cursor.execute(sql, values)
 
-                connection.commit()
+                # connection.commit()
                 
             except Exception as e:
                 print(f"Error moving file {filename}: {e}")
 
     #Zip % compress all the files presend in the dest_folder
+    #logic not required since the files are getting compressed using 
     try:
-        print(f"Compressing files at dest_folder : {dest_folder}")
-        
-        #escaped_dest_folder = dest_folder.replace("\\", "\\\\")
-        #escaped_dest_folder = dest_folder 
-        # dir_path_normalized = os.path.normpath(dest_folder)
-        # print(f"dir_path_normalized type : {type(dir_path_normalized)}")
-
-        # print(f"escaped_dest_folder : {dir_path_normalized}")
-        
+        print(f"Compressing files at dest_folder : {dest_folder}") 
         utils.zip_and_compress.zip_uncompressed_files(dest_folder)
     except Exception as e:
                 print(f"Error in zip and compress file in folder : {dest_folder}: {e}")
 
 
-# # Main function to move files for each folder based on configuration
-# def process_folders(config, connection):
-#     for folder_name, folder_config in config['folders'].items():
-#         print(f"Processing {folder_name}...")
-
-#         print(f"\n<<< Processing DATA FOLDER >>>>...")
-#         # Move files to archive (older than archive_days)
-#         move_files(folder_config['data_folder'], folder_config['archive_folder'], folder_config['archive_days'], connection)
-
-#         print(f"\n<<< Processing ARCHIVE FOLDER >>>>...")
-#         # Move files to delete (older than delete_days)
-#         move_files(folder_config['archive_folder'], folder_config['delete_folder'], folder_config['delete_days'], connection)
-
-#         print(f"\n<<< END >>>>...\n")
+ 
 
 
 # Main function to move files for each folder based on configuration
 def process_folders_using_db(config, records):
     print("\n\nProcessing folder starts..................................... " ) 
+    
+    #random uuid per run.
+    namespace = uuid.NAMESPACE_DNS
+    #random_uuid = uuid.uuid5()
+    random_uuid = uuid.uuid5(namespace, 'dbs.com')
+
+
     archive_data=[]
     for record in records:
         print("record   ",record  ) 
@@ -132,7 +129,7 @@ def process_folders_using_db(config, records):
 
         #Move files to archive (older than archive_days)
         print(f"\n<<< Processing DATA FOLDER >>>>...")
-        move_files(config, record[2], record[3], record[5], connection)
+        move_files(random_uuid, config, record[2], record[3], record[5], connection)
 
         # print(f"\n<<< Processing ARCHIVE FOLDER >>>>...")
         # # Move files to delete (older than delete_days)
@@ -249,35 +246,21 @@ def list_files(config):
 #         connection.close()
 #         print("MySQL connection is closed.")
 
-def rollback_archived_files(connection):
+def rollback_archived_files(connection, records):
     # Load configuration from YAML
     config = load_config()
 
     # # Connect to the MySQL database
     # connection = connect_to_mysql(config)
-
+    print(f"records ::::::: {records}") 
     # If connection was successful, fetch and print some information
-    if connection:
-
-        cursor = connection.cursor()
-        cursor.execute("SELECT DATABASE();")
-        db_info = cursor.fetchone()
-        print(f"You're connected to the database: {db_info[0]}")
-    
-        #create table if not exists
-        #create_table_if_not_exists(connection)
-
-        # Process the folders based on the configuration
-        #process_folders(config, connection)
-
-         # Process the folders based on the configuration
-        date_filter = datetime.strptime("2024-12-20", "%Y-%m-%d").date()  # Ensure correct format
-        rollback_files(config, connection,date_filter)
-    
-        # Close the connection
-        cursor.close()
-        connection.close()
-        print("MySQL connection is closed.")
+    if records:
+        for record in records:
+            print(f"UUID :: {record[5]}")   
+            print(f"Batch Name :: {record[4]}")  
+            #def move_and_unzip_file(src_zip_path, dest_dir):
+            utils.zip_and_compress.move_and_unzip_file(record[5], record[4])
+    print(f"records ::::::: {records}") 
 
 if __name__ == "__main__":
 
@@ -285,10 +268,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="File Archival System")
     parser.add_argument('--archive', action='store_true', help="Archive files from source directories to their corresponding archive folders")
     parser.add_argument('--listfiles', action='store_true', help="List files information from the directory to be archived")
-    parser.add_argument('--write-details', metavar='FILE_PATH', help="Write archival details to a specified file")
     parser.add_argument('--rollback', action='store_true', help="Rollback archived files to their original locations")
     parser.add_argument('--rollingfolders', action='store_true', help="Rolling folders for configured days")
  
+    # UUID argument as optional
+    parser.add_argument('--uuid', type=str, help="UUID to associate with the rollback operation (optional)")
+    
     #setting up logger
     #setup_logging()  
     #logging.debug(f"Logging set....")
@@ -305,7 +290,8 @@ if __name__ == "__main__":
 
         connection = mod_mariadb.connect_to_mariadb(config)
         #create_table_if_not_exists(connection)
-        records = mod_mariadb.get_all_archival_batch_items(connection)
+        records = mod_mariadb.get_all_archival_config_items(connection)
+        
 
         # Process the folders based on the configuration
         process_folders_using_db(config, records)
@@ -325,17 +311,55 @@ if __name__ == "__main__":
     elif args.listfiles:
         logging.debug("Option selected: listfiles")
         list_files()
-    elif args.write_details:
-        logging.debug(f"Option selected: write-details to {args.write_details}")
-        #write_archival_details_to_file(args.write_details)
     elif args.rollback:
-         # Load configuration from YAML
+        print("Rollback 1")
+        # Add the UUID argument
+       
+
+        if args.uuid:
+            # If UUID is provided, validate and use it for rollback
+            try:
+                user_uuid = uuid.UUID(args.uuid)  # Validate the UUID format
+                print(f"Rolling back with UUID: {user_uuid}")
+            except ValueError:
+                print(f"Error: The UUID provided '{args.uuid}' is invalid.")
+                #return  # Exit the program if the UUID is invalid
+        else:
+            # If UUID is not provided, perform the rollback without UUID
+            print("Rolling back without UUID.")
+
+        # Set up argument parser to accept the UUID as a command-line argument
+        # parser = argparse.ArgumentParser(description="Fetch records by UUID from archival_history table.")
+        print("Rollback 2")
+        parser.add_argument("uuid", help="The UUID to search for in the database (e.g., 123e4567-e89b-12d3-a456-426614174000)")
+        print("Rollback 3")
+        # Parse the arguments
+     
+        print("Rollback 4")
+        # Convert the provided UUID argument to a UUID object
+        try:
+            record_uuid = uuid.UUID(args.uuid)
+            uuid_str = str(args)
+            
+            # uuid5 = uuid.uuid5(uuid.NAMESPACE_DNS, 'dbs.com')
+            # record_uuid =  uuid5.UUID(args, version=5)
+            
+        except ValueError:
+            print("Invalid UUID format. Please provide a valid UUID.")
+ 
+
+        # Load configuration from YAML
         config = load_config()
 
         connection = mod_mariadb.connect_to_mariadb(config)
+        #create_table_if_not_exists(connection)
+        records = mod_mariadb.get_all_archival_history_items(connection, record_uuid)
 
         logging.debug("Option selected: rollback")
-        rollback_archived_files(connection)
+        rollback_archived_files(connection, records)
+
+        connection.close()
+        print("Database connection is closed.")
     elif args.rollingfolders:
          # Load configuration from YAML
         config = load_config()
