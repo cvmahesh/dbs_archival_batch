@@ -11,7 +11,11 @@ import sys
 from datetime import date
 import argparse
 from mysql.connector import Error
+# import MySQLdb
 import mod_mariadb 
+import utils.zip_and_compress
+import utils.file_utils
+import utils.utilities
 
 # Load YAML configuration file
 def load_config():
@@ -28,12 +32,23 @@ def setup_logging():
         print(f"Failed to configure logging: {e}")
 
 # Function to move files based on age
-def move_files(src_folder, dest_folder, age_days, connection):
+def move_files(config, src_folder, dest_folder, age_days, connection):
     current_time = time.time()
     
-    print(f"Move from {src_folder} to {dest_folder}")
+    src_folder = config['source_base_dir'] + src_folder 
+    dest_base_dir= config['dest_base_dir']
+    dest_new_dir = utils.utilities.get_folder_name_from_system_date() +utils.utilities.get_path_separator()+dest_folder
+    dest_folder = dest_base_dir + dest_new_dir
+    #config['dest_base_dir'] + utils.utilities.get_folder_name_from_system_date() +utils.utilities.get_path_separator()+dest_folder
 
+    #Create destination folder if not exit
+    
+    utils.file_utils.create_new_folder( dest_base_dir ,dest_new_dir)
+
+    print(f"Move from {src_folder} to {dest_folder}")
+    
     cursor = connection.cursor()
+
 
 
     # Iterate through files in the source folder
@@ -53,8 +68,8 @@ def move_files(src_folder, dest_folder, age_days, connection):
             dest_path = os.path.join(dest_folder, filename)
             try:
                 shutil.move(file_path, dest_path)
-                print(f"Moved {filename} from {src_folder} to {dest_folder}")
-                print(f"Archived file: {filename} from {src_folder} to {dest_folder}" +"\t" +filename+"\t" +src_folder+"\t" +dest_folder+"\t")
+                #print(f"Moved {filename} from {src_folder} to {dest_folder}")
+                print(f"Archived file: {filename} from {src_folder} to {dest_folder}" +utils.utilities.get_path_separator() +filename+"" )
                 
                 sql = """INSERT INTO file_archive (file_name, source_path, archive_path, archived_at) VALUES (%s, %s, %s, %s)"""
                 values = (filename, src_folder, dest_folder, date.today() )
@@ -74,20 +89,36 @@ def move_files(src_folder, dest_folder, age_days, connection):
             except Exception as e:
                 print(f"Error moving file {filename}: {e}")
 
-# Main function to move files for each folder based on configuration
-def process_folders(config, connection):
-    for folder_name, folder_config in config['folders'].items():
-        print(f"Processing {folder_name}...")
+    #Zip % compress all the files presend in the dest_folder
+    try:
+        print(f"Compressing files at dest_folder : {dest_folder}")
+        
+        #escaped_dest_folder = dest_folder.replace("\\", "\\\\")
+        #escaped_dest_folder = dest_folder 
+        # dir_path_normalized = os.path.normpath(dest_folder)
+        # print(f"dir_path_normalized type : {type(dir_path_normalized)}")
 
-        print(f"\n<<< Processing DATA FOLDER >>>>...")
-        # Move files to archive (older than archive_days)
-        move_files(folder_config['data_folder'], folder_config['archive_folder'], folder_config['archive_days'], connection)
+        # print(f"escaped_dest_folder : {dir_path_normalized}")
+        
+        utils.zip_and_compress.zip_uncompressed_files(dest_folder)
+    except Exception as e:
+                print(f"Error in zip and compress file in folder : {dest_folder}: {e}")
 
-        print(f"\n<<< Processing ARCHIVE FOLDER >>>>...")
-        # Move files to delete (older than delete_days)
-        move_files(folder_config['archive_folder'], folder_config['delete_folder'], folder_config['delete_days'], connection)
 
-        print(f"\n<<< END >>>>...\n")
+# # Main function to move files for each folder based on configuration
+# def process_folders(config, connection):
+#     for folder_name, folder_config in config['folders'].items():
+#         print(f"Processing {folder_name}...")
+
+#         print(f"\n<<< Processing DATA FOLDER >>>>...")
+#         # Move files to archive (older than archive_days)
+#         move_files(folder_config['data_folder'], folder_config['archive_folder'], folder_config['archive_days'], connection)
+
+#         print(f"\n<<< Processing ARCHIVE FOLDER >>>>...")
+#         # Move files to delete (older than delete_days)
+#         move_files(folder_config['archive_folder'], folder_config['delete_folder'], folder_config['delete_days'], connection)
+
+#         print(f"\n<<< END >>>>...\n")
 
 
 # Main function to move files for each folder based on configuration
@@ -96,95 +127,21 @@ def process_folders_using_db(config, records):
     archive_data=[]
     for record in records:
         print("record   ",record  ) 
-        print("record 0::  ",record[1]  ) 
-        #print("record   ", record['batch_name'] ) 
-        # ID, batch_name, data_folder, archive_folder, delete_folder, archive_days, delete_days, is_Active, email_receipt, create_by, created_on = record
-        # archive_data.append({
-        #     "ID": ID, 
-        #     "batch_name": batch_name, 
-        #     "data_folder": data_folder,
-        #     "archive_folder": archive_folder,
-        #     "delete_folder": delete_folder, 
-        #     "archive_days": archive_days, 
-        #     "delete_days": delete_days, 
-        #     "is_Active": is_Active, 
-        #     "email_receipt": email_receipt, 
-        #     "create_by": create_by, 
-        #     "created_on": created_on   
-        # })
-        # print("batch_name   ",batch_name  ) 
- 
-        #print(f"\nProcessing DATA FOLDER >>>> {data_folder}...")
+        # print("record 0::  ",record[1]  ) 
+        
 
         #Move files to archive (older than archive_days)
-        move_files( record[2], record[3], record[5], connection)
+        print(f"\n<<< Processing DATA FOLDER >>>>...")
+        move_files(config, record[2], record[3], record[5], connection)
 
-        print(f"\n<<< Processing ARCHIVE FOLDER >>>>...")
-        # Move files to delete (older than delete_days)
-        move_files( record[3], record[4], record[6] , connection)
+        # print(f"\n<<< Processing ARCHIVE FOLDER >>>>...")
+        # # Move files to delete (older than delete_days)
+        # move_files( record[3], record[4], record[6] , connection)
  
         print(f"\n<<< END >>>>...\n")
     print("Processing folder ends "   ) 
  
-
-
-# def connect_to_mariadb(config):
-
-#     try:
-#         connection = None  # Initialize connection to None
-#         database_config = config['mariadb']
-#         # Establish the connection
-#         print(f"mariadb database_config : {database_config}")
-#         connection =  mod_mariadb.connect_to_mariadb() 
-      
-#         #if connection.is_connected():
-#         print("Connected to MariaDB successfully!")
-        
-#         # Fetch and display server information
-#         #db_info = connection.get_server_info()
-#         #print(f"MariaDB Server Version: {db_info}")
-
-#         # Example query
-#         cursor = connection.cursor()
-#         cursor.execute("SELECT DATABASE();")
-#         current_db = cursor.fetchall()
-#         print(f"Currently connected to database: {current_db}")
-
-#     except Error  as e:
-#         print(f"Error while connecting to MariaDB: {e}")
-
-#     finally:
-#         # Ensure the connection is closed
-#         #if connection.is_connected():
-#         #connection.close()
-#         if connection:
-#             connection.close()
-#             print("MariaDB connection closed.")
-
-
-
-
-# def create_table_if_not_exists(connection):
-#     cursor = connection.cursor()
-
-#     # SQL query to create a table if it doesn't exist
-#     create_table_query = '''
-#     CREATE TABLE IF NOT EXISTS file_archive (
-#         id INT AUTO_INCREMENT PRIMARY KEY,
-#         file_name VARCHAR(100),
-#         source_path VARCHAR(100),
-#         archive_path VARCHAR(100),
-#         archived_at DATE DEFAULT NULL
-#     );
-#     '''
-#     try:
-#         cursor.execute(create_table_query)
-#         connection.commit()
-#         print("Table 'file_archive' is ready (created if not exists).")
-#     except mysql.connector.Error as err:
-#         print(f"Error while creating table: {err}")
-#     finally:
-#         cursor.close()
+ 
 
 
 def rollback_files(config, connection, filter_date):
@@ -330,13 +287,14 @@ if __name__ == "__main__":
     parser.add_argument('--listfiles', action='store_true', help="List files information from the directory to be archived")
     parser.add_argument('--write-details', metavar='FILE_PATH', help="Write archival details to a specified file")
     parser.add_argument('--rollback', action='store_true', help="Rollback archived files to their original locations")
+    parser.add_argument('--rollingfolders', action='store_true', help="Rolling folders for configured days")
  
     #setting up logger
-    #setup_logging() 
+    #setup_logging()  
     #logging.debug(f"Logging set....")
 
     args = parser.parse_args()
-
+    print(f"You're connected to the database: {args}")
    
 
     if args.archive:
@@ -378,6 +336,11 @@ if __name__ == "__main__":
 
         logging.debug("Option selected: rollback")
         rollback_archived_files(connection)
+    elif args.rollingfolders:
+         # Load configuration from YAML
+        config = load_config()
+
+        utils.file_utils.manage_folders(config)
     else:
         logging.debug("No valid option selected. Displaying help.")
         parser.print_help()

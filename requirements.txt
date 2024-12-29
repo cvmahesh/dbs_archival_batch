@@ -1,8 +1,16 @@
-mysql-connector-python==8.0.33
+#mysql-connector-python
+#mysql-connector==8.0.19
+mysql-connector==2.2.9
 pyyaml
-logging.config
-#requests==2.28.1  # (or any other dependencies for your project)
-#flask flask-mail
-jinja2
 pymysql
-mariadb
+cryptography==2.8
+
+
+# jinja2
+# mysql-connector-python==8.0.33
+# logging.config
+# requests==2.28.1  # (or any other dependencies for your project)
+# # flask flask-mail
+# mariadb
+# os
+# zipfile

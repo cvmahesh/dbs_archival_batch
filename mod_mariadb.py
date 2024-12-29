@@ -111,14 +111,14 @@ def get_all_archival_batch_items(connection):
         data_folder, 
         archive_folder, 
         delete_folder, 
-        archive_days, 
-        delete_days, 
+        archival_period, 
+        delete_period, 
         is_Active,
         email_receipt, 
         created_by, 
         created_on 
         FROM 
-        archival_batch_items ;
+        archival_config ;
 
     '''
     try:

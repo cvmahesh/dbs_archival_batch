@@ -5,6 +5,10 @@ loggers:
     level: DEBUG
     handlers: [fileHandler, consoleHandler]
 
+max_days: 15  # Number of folders to manage
+base_path: "C:\workspace\testing\RollingFolders"  # Change to your desired folder path
+
+
 handlers:
   fileHandler:
     class: logging.FileHandler
