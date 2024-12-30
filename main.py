@@ -5,33 +5,27 @@ import yaml
 from datetime import datetime, timedelta
 import mysql.connector
 import logging
-import logging.config
+# import logging.config
 import yaml
 import sys
 from datetime import date
 import argparse
 from mysql.connector import Error
+
+
 # import MySQLdb
 import mod_mariadb 
 import utils.zip_and_compress
 import utils.file_utils
 import utils.utilities
 import uuid
-
+import logger.archival_logger
 
 # Load YAML configuration file
 def load_config():
     with open('file_config.yaml', 'r') as file:
         return yaml.safe_load(file)
-
-# Logging configuration from YAML
-def setup_logging():
-    try:
-        log_config = yaml.safe_load('logging_config.YAML')        
-        logging.config.dictConfig(log_config)
-        logger = logging.getLogger(__name__)
-    except ValueError as e:
-        print(f"Failed to configure logging: {e}")
+ 
 
 # Function to move files based on age
 def move_files(random_uuid, config, src_folder, dest_folder, age_days, connection):
@@ -275,11 +269,12 @@ if __name__ == "__main__":
     parser.add_argument('--uuid', type=str, help="UUID to associate with the rollback operation (optional)")
     
     #setting up logger
-    #setup_logging()  
-    #logging.debug(f"Logging set....")
+    logger.archival_logger.setup_logging()  
+    logger = logging.getLogger(__name__)
+    logging.info(f"Logging set....")
 
     args = parser.parse_args()
-    print(f"You're connected to the database: {args}")
+ 
    
 
     if args.archive:
@@ -308,6 +303,8 @@ if __name__ == "__main__":
         #archive_files()
 
         #archive_files()
+
+     
     elif args.listfiles:
         logging.debug("Option selected: listfiles")
         list_files()
@@ -368,4 +365,6 @@ if __name__ == "__main__":
     else:
         logging.debug("No valid option selected. Displaying help.")
         parser.print_help()
+    
+    exit(0)
     

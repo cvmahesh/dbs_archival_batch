@@ -1,28 +1,19 @@
 version: 1
-disable_existing_loggers: False
-loggers:
-  root:
-    level: DEBUG
-    handlers: [fileHandler, consoleHandler]
-
-max_days: 15  # Number of folders to manage
-base_path: "C:\workspace\testing\RollingFolders"  # Change to your desired folder path
-
+formatters:
+  simple:
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
 handlers:
-  fileHandler:
-    class: logging.FileHandler
-    level: DEBUG
-    formatter: simpleFormatter
-    args: ['log_file_path.log', 'a']
-
   consoleHandler:
     class: logging.StreamHandler
+    formatter: simple
     level: DEBUG
-    formatter: simpleFormatter
-    args: []  # Leave args empty. We'll update this in Python code.
+  fileHandler:
+    class: logging.FileHandler
+    formatter: simple
+    level: DEBUG
+    filename: C:\workspace\testing\logs\app.log  # Specify the log file name
 
-formatters:
-  simpleFormatter:
-    format: '%(asctime)s - %(levelname)s - %(message)s'
-    datefmt: '%Y-%m-%d %H:%M:%S'
+root:
+  handlers: [consoleHandler, fileHandler]
+  level: DEBUG
