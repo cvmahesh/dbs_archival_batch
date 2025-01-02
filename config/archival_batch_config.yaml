@@ -1,0 +1,32 @@
+# mysql:
+#   host: localhost
+#   user: archival_db_user
+#   password: Mar-1976$$
+#   database: archival_db
+#   port: 3306 
+
+
+mariadb:
+  host: localhost
+  user: root
+  password: Mar-1976
+  database: batch_db
+  port: 3307
+
+source_base_dir: "C:\\workspace\\testing\\"
+dest_base_dir: "C:\\workspace\\testing\\RollingFolders\\"
+
+ignore_dirs:
+  - "C:\\workspace\\testing\\TARGET_DIR\\TARGET2\\data\\exclude"
+  - "C:\\workspace\\testing\\TARGET_DIR\\TARGET2\\delete\\exclude"
+
+archival_config_query: "SELECT dir_name, archival_period FROM archival_config"
+
+delete_dirs_days: 15
+
+emaillist:
+  Process1:
+    email_to: rush2cvmahesh@gmail.com
+    email_cc: rush2magilife@gmail.com 
+    email_bcc: cvmahesh@rediffmail.com
+ 

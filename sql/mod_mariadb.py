@@ -29,6 +29,7 @@ def connect_to_mysql(config):
         return connection
     except mysql.connector.Error as err:
         print(f"Error: {err}")
+        exit(1)
         return None
     
     
@@ -66,16 +67,12 @@ def connect_to_mariadb(config):
 
     except Error as e:
         print(f"Error while connecting to MariaDB: {e}")
-
+        exit(1)
     finally:
         # Ensure the connection is closed
         #if connection.is_connected():
         return connection
-        
-            # connection.close()
-            # print("MariaDB connection closed.")
-
-# Run the program
+ 
 
 
 def create_table_if_not_exists(connection):
@@ -100,7 +97,7 @@ def create_table_if_not_exists(connection):
     finally:
         cursor.close()
 
-def get_all_archival_config_items(connection):
+def get_archival_config_items(connection):
     cursor = connection.cursor()
 
     # SQL query to create a table if it doesn't exist
@@ -118,7 +115,7 @@ def get_all_archival_config_items(connection):
         created_by, 
         created_on 
         FROM 
-        archival_config ;
+        archival_config order by ID;
 
     '''
     try:
@@ -209,22 +206,33 @@ def get_all_archival_batch_items(connection):
     finally:
         cursor.close()
 
-def get_all_archival_history_items(connection,record_uuid):
+def get_all_archival_history_items(connection):
     cursor = connection.cursor()
 
     # Ensure that the UUID is converted to string for the query
-    record_uuid_str = str(record_uuid)  # Convert UUID object to string if not already
+    #record_uuid_str = str(record_uuid)  # Convert UUID object to string if not already
 
     # SQL query with WHERE clause to filter by UUID
+    # SELECT id, uuid, batch_name, file_name, source_path, archive_path, archived_at
+    # FROM archival_history
+    # WHERE uuid = %s
+
+    # SQL query with WHERE clause to filter by lastest ID
     query = """
+
     SELECT id, uuid, batch_name, file_name, source_path, archive_path, archived_at
     FROM archival_history
-    WHERE uuid = %s
+    WHERE  UUID= (   
+        SELECT UUID
+        FROM archival_history
+        ORDER BY id DESC
+    LIMIT 1);
     """
 
     try:
         # Execute the query with the provided UUID
-        cursor.execute(query, (record_uuid_str,))
+        #cursor.execute(query, (record_uuid_str,))
+        cursor.execute(query)
         
         # Fetch all matching records
         results = cursor.fetchall()  # Retrieve all matching records
@@ -235,6 +243,7 @@ def get_all_archival_history_items(connection,record_uuid):
                 print(record)
             return results
         else:
+
             print("No record found with the given UUID.")
             return None
     
@@ -275,4 +284,4 @@ if __name__ == "__main__":
     config = load_config()
     connection = connect_to_mariadb(config)
     #create_table_if_not_exists(connection)
-    records = get_all_archival_config_items(connection)
+    records = get_archival_config_items(connection)

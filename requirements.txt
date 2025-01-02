@@ -4,7 +4,7 @@ mysql-connector==2.2.9
 pyyaml
 pymysql
 cryptography==2.8
-
+prettytable
 
 # jinja2
 # mysql-connector-python==8.0.33

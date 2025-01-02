@@ -2,6 +2,10 @@ import os
 import zipfile
 import shutil
 import utils.file_utils 
+import tarfile
+import gzip
+ 
+
 # List of compressed file extensions
 COMPRESSED_EXTENSIONS = {".zip", ".rar", ".7z", ".gz", ".bz2", ".xz"}
 
@@ -10,6 +14,84 @@ def is_compressed(file_name):
     return ext.lower() in COMPRESSED_EXTENSIONS
 
  
+
+
+# Method in use
+def tar_and_gzip(source_file, filename, destination_dir):
+ 
+    # Validate source file
+    if not os.path.isfile(source_file):
+        print(f"Error: Source file '{source_file}' does not exist.")
+        return
+
+    # Ensure destination directory exists
+    os.makedirs(destination_dir, exist_ok=True)
+
+    # Determine archive paths
+    tar_file = os.path.join(destination_dir, f"{filename}.tar")
+    gz_file = os.path.join(destination_dir, f"{filename}.tar.gz")
+
+    # Step 1: Create a .tar file
+    try:
+        with tarfile.open(tar_file, "w") as tar:
+            tar.add(source_file, arcname=os.path.basename(source_file))  # Add the source file to the tar
+        print(f"Tar file '{tar_file}' created successfully.")
+    except Exception as e:
+        print(f"Error creating tar file: {e}")
+        return
+
+    # Step 2: Compress the .tar file to .tar.gz
+    try:
+        with open(tar_file, 'rb') as f_in:
+            with gzip.open(gz_file, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        print(f"GZIP file '{gz_file}' created successfully.")
+    except Exception as e:
+        print(f"Error compressing tar file: {e}")
+        return
+
+    # Step 3: Remove the intermediate .tar file
+    try:
+        os.remove(tar_file)
+        print(f"Intermediate tar file '{tar_file}' removed.")
+    except Exception as e:
+        print(f"Error removing tar file: {e}")
+
+    # Step 4: Remove the source file
+    try:
+        os.remove(source_file)
+        print(f"Source file '{source_file}' removed successfully.")
+    except Exception as e:
+        print(f"Error removing source file: {e}")
+
+
+# method in use 
+def uncompress_tar_gz(src_tar_gz_file, destination_dir):
+ 
+    # Validate source tar.gz file
+    if not os.path.exists(src_tar_gz_file):
+        print(f"Error: The file '{src_tar_gz_file}' does not exist.")
+        return
+
+    # Ensure destination directory exists
+    os.makedirs(destination_dir, exist_ok=True)
+
+    # Step 1: Uncompress the .tar.gz file
+    try:
+        with tarfile.open(src_tar_gz_file, "r:gz") as tar:
+            tar.extractall(path=destination_dir)
+        print(f"Files from '{src_tar_gz_file}' extracted successfully to '{destination_dir}'.")
+    except Exception as e:
+        print(f"Error extracting tar.gz file: {e}")
+        return
+
+    # Step 2: Delete the source .tar.gz file
+    try:
+        os.remove(src_tar_gz_file)
+        print(f"Source file '{src_tar_gz_file}' removed successfully.")
+    except Exception as e:
+        print(f"Error removing source tar.gz file: {e}")
+
 
 def move_file_to_compressed_archive(source_file, dest_dir, archive_name="compressed_files"):
  

@@ -6,7 +6,7 @@ import yaml
 def setup_logging():
     # Load YAML configuration
     try:
-        with open('logging_config.yaml', 'r') as file:
+        with open('config/logging_config.yaml', 'r') as file:
             config = yaml.safe_load(file)  # `safe_load` is compatible with Python 3.6
     except FileNotFoundError:
         print("Error: logging_config.yaml file not found.")
