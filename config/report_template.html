@@ -100,52 +100,19 @@
                 <h1>Archival Batch Processing Report</h1>
                 <h2>Ignored Items</h2>
                 <ul>
-                    
-                        <li>temp</li>
-                    
-                        <li>log</li>
-                    
-                        <li>cache</li>
-                    
+                    {% for item in ignore_items %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
                 </ul>
                 <h2>Processed Directories</h2>
                 <ul>
-                    
-                        <li>dir1</li>
-                    
-                        <li>dir2</li>
-                    
-                        <li>dir3</li>
-                    
+                    {% for dir in processed_dir_items %}
+                        <li>{{ dir }}</li>
+                    {% endfor %}
                 </ul>
                 <h2>Pretty Report</h2>
                 <div>
-                    <table class="pretty-table">
-    <thead>
-        <tr>
-            <th>Timestamp</th>
-            <th>Error Code</th>
-            <th>Error Message</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>2025-01-07 15:27:36</td>
-            <td>404</td>
-            <td>Page not found</td>
-        </tr>
-        <tr>
-            <td>2025-01-07 15:27:36</td>
-            <td>500</td>
-            <td>Internal server error</td>
-        </tr>
-        <tr>
-            <td>2025-01-07 15:27:36</td>
-            <td>403</td>
-            <td>Forbidden access</td>
-        </tr>
-    </tbody>
-</table>
+                    {{ table_html|safe }}
                 </div>
             </td>
         </tr>

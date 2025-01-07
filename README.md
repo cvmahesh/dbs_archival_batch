@@ -54,3 +54,6 @@ python3 .\main.py --archive
 
 
 
+## Database connection issue at DBS
+pip install --upgrade mysql-connector-python
+

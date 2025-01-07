@@ -1,0 +1,28 @@
+# Ignore Python cache directories and compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# Distribution files
+dist/
+build/
+*.egg-info/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.bak
+
+# IDE-specific files (optional)
+.vscode/
+.idea/
+
+
