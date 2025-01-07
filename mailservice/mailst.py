@@ -5,7 +5,7 @@ from email.mime.multipart import MIMEMultipart
 # Email details
 sender_email = "cvmahesh@rediffmail.com"  # Replace with your email
 receiver_email = "rush2cvmahesh@gmail.com"  # Replace with the recipient's email
-password = "GautamM"  # Replace with your email password
+password = ""  # Replace with your email password
 
 # Email content
 subject = "Test Email from Python"

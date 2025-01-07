@@ -29,4 +29,4 @@ def send_email(user, pwd, recipient, subject, body):
         print(f"failed to send mail : {e}")
 
 if __name__ == '__main__':
-    send_email("rush2cvmahesh@gmail.com", "D0ubl3H0rs314","rush2cvmahesh@gmail.com","Test Email","Hello World")
+    send_email("rush2cvmahesh@gmail.com", "","rush2cvmahesh@gmail.com","Test Email","Hello World")
