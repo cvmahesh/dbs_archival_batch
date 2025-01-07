@@ -9,6 +9,7 @@ def load_config():
         return yaml.safe_load(file)
     
 
+
 def connect_to_mariadb(config):
 
     connection = None  # Initialize connection to None

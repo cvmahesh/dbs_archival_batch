@@ -12,6 +12,10 @@ mariadb:
   password: Mar-1976
   database: batch_db
   port: 3307
+  ssl:
+    ca: "C:/path/to/ca-cert.pem"
+    cert: "C:/path/to/client-cert.pem"  
+    key: "C:/path/to/client-key.pem"    
 
 source_base_dir: "C:\\workspace\\testing\\"
 dest_base_dir: "C:\\workspace\\testing\\RollingFolders\\"
@@ -23,6 +27,33 @@ ignore_dirs:
 archival_config_query: "SELECT dir_name, archival_period FROM archival_config"
 
 delete_dirs_days: 15
+
+
+# Email configuration
+EmailService:
+  api_url: "https://emailservice.uat.com/send"
+  from: "sender@example.com"
+  subject: "Test Email with Template"
+  remarks: "Test email for template integration"
+  contactus: "support@example.com"
+
+Recipients:
+  to:
+    - "recipient1@example.com"
+    - "recipient2@example.com"
+  cc:
+    - "cc1@example.com"
+    - "cc2@example.com"
+  bcc:
+    - "bcc1@example.com"
+    - "bcc2@example.com"
+
+Attachments:
+  - filename: "document.pdf"
+    url: "https://example.com/document.pdf"
+BinaryAttachments:
+  - filename: "image.png"
+    content: "base64_encoded_content_here"
 
 emaillist:
   Process1:

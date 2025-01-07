@@ -3,8 +3,10 @@
 mysql-connector==2.2.9
 pyyaml
 pymysql
-cryptography==2.8
+#cryptography==2.8
 prettytable
+requests
+jinja2 #Thymeleaf
 
 # jinja2
 # mysql-connector-python==8.0.33

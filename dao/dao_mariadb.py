@@ -1,7 +1,7 @@
 import mysql.connector
 from mysql.connector import Error
 import yaml
-
+import logging
 
 # Load YAML configuration file
 def load_config():
@@ -9,14 +9,15 @@ def load_config():
         return yaml.safe_load(file)
     
 
-
+logger = logging.getLogger(__name__)
+logger.info(f"Logging set....")
 
 # Function to establish a connection to the MySQL database
 def connect_to_mysql(config):
 
     try:
         database_config = config['mysql']
-        print(f"database_config: {database_config}")
+        logger.info(f"database_config: {database_config}")
         # Create a connection to the database
         connection = mysql.connector.connect(
             host=database_config['host'],
@@ -25,10 +26,10 @@ def connect_to_mysql(config):
             password=database_config['password'],
             database=database_config['database']
         )
-        print("Successfully connected to the MySQL database!")
+        logger.info("Successfully connected to the MySQL database!")
         return connection
     except mysql.connector.Error as err:
-        print(f"Error: {err}")
+        logger.error(f"Error: {err}")
         exit(1)
         return None
     
@@ -39,7 +40,7 @@ def connect_to_mariadb(config):
 
     try:
         database_config = config['mariadb']
-        print(f"database_config: {database_config}")
+        logger.info(f"database_config: {database_config}")
         # Create a connection to the database
         connection = mysql.connector.connect(
             host=database_config['host'],
@@ -48,25 +49,22 @@ def connect_to_mariadb(config):
             password=database_config['password'],
             database=database_config['database']
         )
-    
-
- 
 
         if connection.is_connected():
-            print("Connected to MariaDB successfully!")
+            logger.info("Connected to MariaDB successfully!")
             
             # Fetch and display server information
             db_info = connection.get_server_info()
-            print(f"MariaDB Server Version: {db_info}")
+            logger.info(f"MariaDB Server Version: {db_info}")
 
             # Example query
             cursor = connection.cursor()
             cursor.execute("SELECT DATABASE();")
             current_db = cursor.fetchone()
-            print(f"Currently connected to database: {current_db}")
+            logger.info(f"Currently connected to database: {current_db}")
 
     except Error as e:
-        print(f"Error while connecting to MariaDB: {e}")
+        logger.error(f"Error while connecting to MariaDB: {e}")
         exit(1)
     finally:
         # Ensure the connection is closed
@@ -91,9 +89,9 @@ def create_table_if_not_exists(connection):
     try:
         cursor.execute(create_table_query)
         connection.commit()
-        print("Table 'file_archive' is ready (created if not exists).")
+        logger.info("Table 'file_archive' is ready (created if not exists).")
     except mysql.connector.Error as err:
-        print(f"Error while creating table: {err}")
+        logger.error(f"Error while creating table: {err}")
     finally:
         cursor.close()
 
@@ -121,26 +119,49 @@ def get_archival_config_items(connection):
     try:
         cursor.execute(select_query)
         records = cursor.fetchall()
-        print("Fetched records from archival_config table :")
+        logger.info("Fetched records from archival_config table :")
 
         # Fetch column names
         columns = [column[0] for column in cursor.description]
 
         records_array = []
  
-        print("Records stored in array:")
-        print("Total Records ", records)
-        print("Total Records ", len(records))
+        logger.info("Records stored in array:")
+        logger.info("Total Records ", records)
+        logger.info("Total Records ", len(records))
         
         #return records_array 
         return records
     
     except mysql.connector.Error as err:
-        print(f"Error while select records from table archival_config: {err}")
+        logger.error(f"Error while select records from table archival_config: {err}")
     finally:
         cursor.close()
 
 
+def get_all_file_archive(connection, filter_date):
+     
+    try:
+        # Create a cursor
+        cursor = connection.cursor(dictionary=True)  # Use dictionary=True for results as dicts
+
+        # Define the SQL query
+        sql = """
+        SELECT id, file_name, source_path, archive_path, archived_at
+        FROM file_archive
+        WHERE archived_at = %s
+        """
+
+        # Execute the query with the filter date
+        cursor.execute(sql, (filter_date,))
+
+        # Fetch all matching records
+        records = cursor.fetchall()
+        return records
+    except mysql.connector.Error as err:
+        logger.error(f"Error while select records from table archival_config: {err}")
+    finally:
+        cursor.close()
 
 def get_all_archival_batch_items(connection):
     cursor = connection.cursor()
@@ -167,42 +188,23 @@ def get_all_archival_batch_items(connection):
     try:
         cursor.execute(select_query)
         records = cursor.fetchall()
-        print("Fetched records:")
+        logger.info("Fetched records:")
 
         # Fetch column names
         columns = [column[0] for column in cursor.description]
 
         records_array = []
-
-        # for record in records:
-        #     print(f"ID: {record[0]}, batch_name: {record[1]}, data_folder: {record[2]}")
-
-        #     records_array.append({
-        #         "ID": record[0],
-        #         "batch_name": record[1],
-        #         "data_folder": record[2],
-        #         "archive_folder": record[3],
-        #         "delete_folder": record[4],
-        #         "archive_days": record[5],
-        #         "delete_days": record[6],
-        #         "is_Active": record[7],
-        #         "email_receipt": record[8],
-        #         "create_by": record[9],
-        #         "created_on": record[10]
-                
-        #     })
-        
-        #connection.commit()
+ 
         # Print the array
-        print("Records stored in array:")
-        print("Total Records ", records)
-        print("Total Records ", len(records))
+        logger.info("Records stored in array:")
+        logger.info("Total Records ", records)
+        logger.info("Total Records ", len(records))
         
         #return records_array 
         return records
     
     except mysql.connector.Error as err:
-        print(f"Error while select records from table archival_batch_items: {err}")
+        logger.error(f"Error while select records from table archival_batch_items: {err}")
     finally:
         cursor.close()
 
@@ -238,17 +240,17 @@ def get_all_archival_history_items(connection):
         results = cursor.fetchall()  # Retrieve all matching records
         
         if results:
-            print(f"Found {len(results)} record(s) matching the UUID:")
+            logger.info(f"Found {len(results)} record(s) matching the UUID:")
             for record in results:
-                print(record)
+                logger.info(record)
             return results
         else:
 
-            print("No record found with the given UUID.")
+            logger.info("No record found with the given UUID.")
             return None
     
     except mysql.connector.Error as err:
-        print(f"Error: {err}")
+        logger.error(f"Error: {err}")
         return None
     
     finally:
@@ -262,18 +264,18 @@ def insert_archival_history(conn,  values):
     query = """INSERT INTO archival_history (uuid, file_name, source_path, archive_path, archived_at) VALUES (%s, %s, %s, %s, %s)"""
  
     try:
-        print("SQL Query:", query)
-        print("SQL Values:", values)
+        logger.info("SQL Query:", query)
+        logger.info("SQL Values:", values)
 
         # Execute the query with the provided values
         cursor.execute(query, values)
         
         # Commit the transaction
         conn.commit()
-        print(f"Record inserted into archival_history successfully")
+        logger.info(f"Record inserted into archival_history successfully")
     
     except mysql.connector.Error as err:
-        print(f"Error: {err}")
+        logger.error(f"Error: {err}")
         conn.rollback()  # Rollback in case of error
     
     finally:
